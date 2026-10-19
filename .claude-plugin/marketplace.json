@@ -1,0 +1,12 @@
+{
+  "name": "bcb",
+  "owner": { "name": "satabd" },
+  "description": "BrowserChatBridge: ChatGPT and Gemini as Claude Code tools via your browser.",
+  "plugins": [
+    {
+      "name": "bcb",
+      "source": "./",
+      "description": "Talk to your signed-in ChatGPT and Gemini browser tabs from Claude Code as MCP tools."
+    }
+  ]
+}

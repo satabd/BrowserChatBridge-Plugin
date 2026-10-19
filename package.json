@@ -1,0 +1,32 @@
+{
+  "name": "bcb-plugin",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Claude Code plugin: talk to your signed-in ChatGPT and Gemini browser tabs as MCP tools.",
+  "license": "MIT",
+  "author": "satabd",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test tests/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.5",
+    "@types/node": "^26.6.5",
+    "@types/turndown": "^5.0.6",
+    "@types/ws": "^8.18.2",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "turndown": "^7.2.4",
+    "ws": "^8.22.0",
+    "zod": "^4.6.7"
+  }
+}

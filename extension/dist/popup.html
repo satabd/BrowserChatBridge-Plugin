@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BrowserChatBridge</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>BrowserChatBridge</h1>
+      <div id="version"></div>
+    </header>
+    <section id="status" class="status loading">
+      <span class="dot"></span>
+      <span class="label">Loading...</span>
+    </section>
+    <section class="block">
+      <label for="serverUrl">Bridge URL (set by the Claude Code plugin)</label>
+      <input id="serverUrl" type="text" placeholder="http://127.0.0.1:17361" autocomplete="off" spellcheck="false" />
+      <button id="saveBtn">Save &amp; reconnect</button>
+    </section>
+    <section class="block">
+      <div class="row">
+        <strong>Detected tabs</strong>
+        <button id="refreshTabsBtn" class="ghost">Refresh</button>
+      </div>
+      <ul id="tabsList" class="tabs"></ul>
+    </section>
+    <footer>
+      <p>Not connected? Start a Claude Code session with the <code>bcb</code> plugin enabled, or run <code>/bcb:doctor</code>.</p>
+    </footer>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "bcb": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js"],
+      "env": {
+        "BCB_PLUGIN_ROOT": "${CLAUDE_PLUGIN_ROOT}",
+        "BCB_DATA_DIR": "${CLAUDE_PLUGIN_DATA}"
+      }
+    }
+  }
+}
