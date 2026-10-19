@@ -13,7 +13,7 @@ import {
 import { BcbError, Bridge } from "./bridge.js";
 import { log } from "./logger.js";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 const EXTENSION_WAIT_MS = Number(process.env.BCB_EXTENSION_WAIT_MS ?? 25_000);
 
 const bridge = new Bridge(VERSION, Number(process.env.BCB_PORT ?? 17361));
@@ -163,6 +163,8 @@ async function resolveTab(provider: Provider, tabId: number | undefined, fresh: 
     if (!t) throw new BcbError("tab_not_found", `Tab ${tabId} is not an open ${PROVIDER_LABEL[provider]} tab. Open tabs:\n${tabs.map(describeTab).join("\n") || "(none)"}`);
     return t;
   }
+  // Order of preference: the tab this session already used → the one the user is looking at
+  // → the most recently foregrounded one (the extension sorts by lastAccessed).
   const remembered = lastUsedTab.get(provider);
   const pick = tabs.find((t) => t.tabId === remembered) ?? tabs.find((t) => t.active && t.focused) ?? tabs.find((t) => t.active) ?? tabs[0];
   if (pick) return pick;

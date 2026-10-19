@@ -6,6 +6,7 @@ import {
   type PingResult,
   type RequestMap,
   type SendResult,
+  type TurnSnapshot,
 } from "../../../shared/protocol.js";
 import type { ProviderAdapter } from "./adapter.js";
 import { ChatGPTAdapter } from "./adapters/chatgpt.js";
@@ -56,7 +57,7 @@ async function handleCommand(cmd: ContentCommand): Promise<ContentResponse> {
     }
 
     case "send": {
-      const baseline = adapter.getTurnCounts();
+      const baseline = snapshot(adapter);
       const outcome = await adapter.send(cmd.prompt);
       if (!outcome.ok) return { ok: false, error: { code: outcome.code, message: outcome.message } };
       const data: SendResult = { baseline, via: outcome.via };
@@ -67,10 +68,11 @@ async function handleCommand(cmd: ContentCommand): Promise<ContentResponse> {
       scrollToBottom(adapter.scrollSelectors); // ChatGPT virtualises long replies; unscrolled reads go stale.
       const text = adapter.getLastResponseText("text");
       const data: ObserveResult = {
-        turnCounts: adapter.getTurnCounts(),
+        ...snapshot(adapter),
         generating: adapter.isGenerating(),
         textLength: text.length,
         textHash: hashString(text),
+        composerText: normalise(adapter.findComposer()?.textContent ?? ""),
         visibility: document.visibilityState === "visible" ? "visible" : "hidden",
       };
       return { ok: true, data };
@@ -86,6 +88,18 @@ async function handleCommand(cmd: ContentCommand): Promise<ContentResponse> {
       return { ok: true, data };
     }
   }
+}
+
+function snapshot(a: ProviderAdapter): TurnSnapshot {
+  return {
+    ...a.getTurnCounts(),
+    lastAssistantKey: a.getLastAssistantKey(),
+    lastUserText: normalise(a.getLastUserText()),
+  };
+}
+
+function normalise(s: string): string {
+  return s.replace(/\s+/g, " ").trim().slice(0, 300);
 }
 
 function pickAdapter(hostname: string): ProviderAdapter | null {

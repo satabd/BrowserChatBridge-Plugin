@@ -47,6 +47,8 @@ export interface TabDescriptor {
   title: string;
   active: boolean;
   focused: boolean;
+  /** ms epoch the tab was last foregrounded (Chrome 121+); 0 when unknown. */
+  lastAccessed: number;
 }
 
 export interface TurnCounts {
@@ -160,19 +162,27 @@ export type ContentCommand =
   | { action: "getLastResponse"; format: ReturnFormat }
   | { action: "scrape"; format: ReturnFormat };
 
+export interface TurnSnapshot extends TurnCounts {
+  /** Stable id of the newest assistant message ("" when the page exposes none). */
+  lastAssistantKey: string;
+  /** Normalised text of the newest user message (first 300 chars). */
+  lastUserText: string;
+}
+
 export interface SendResult {
-  /** Turn counts captured BEFORE the prompt was submitted. */
-  baseline: TurnCounts;
-  /** How the submit was triggered; "none" means no control was found and Enter was synthesised. */
+  /** Snapshot captured BEFORE the prompt was submitted. */
+  baseline: TurnSnapshot;
+  /** How the submit was triggered. */
   via: "button" | "enter";
 }
 
-export interface ObserveResult {
-  turnCounts: TurnCounts;
+export interface ObserveResult extends TurnSnapshot {
   generating: boolean;
   /** Plain-text length + cheap hash of the latest assistant reply, for stability checks. */
   textLength: number;
   textHash: number;
+  /** Normalised composer contents (first 300 chars); non-empty after a send means it was rejected. */
+  composerText: string;
   visibility: "visible" | "hidden";
 }
 

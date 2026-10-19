@@ -938,6 +938,18 @@ ${content.trim().replace(/\n{2,}/g, "\n")}
     getTurnCounts() {
       return { user: this.userTurns().length, assistant: this.assistantTurns().length };
     }
+    getLastAssistantKey() {
+      const turns = this.assistantTurns();
+      const last = turns[turns.length - 1];
+      if (!last) return "";
+      const keyed = last.matches("[data-chatgpt-selection-message-id],[data-message-id]") ? last : last.querySelector("[data-chatgpt-selection-message-id],[data-message-id]");
+      return keyed?.getAttribute("data-chatgpt-selection-message-id") ?? keyed?.getAttribute("data-message-id") ?? last.closest("[data-turn-key]")?.getAttribute("data-turn-key") ?? "";
+    }
+    getLastUserText() {
+      const turns = this.userTurns();
+      const last = turns[turns.length - 1];
+      return last ? this.renderUser(last, "text") : "";
+    }
     async send(prompt) {
       const input = this.findComposer();
       if (!input) return { ok: false, code: "input_not_found", message: "ChatGPT composer not found (is the page signed in and fully loaded?)" };
@@ -1063,6 +1075,17 @@ ${content.trim().replace(/\n{2,}/g, "\n")}
     getTurnCounts() {
       return { user: this.userTurns().length, assistant: this.assistantTurns().length };
     }
+    getLastAssistantKey() {
+      const turns = this.assistantTurns();
+      const last = turns[turns.length - 1];
+      if (!last) return "";
+      return last.querySelector("message-content[id], [id^='model-response-message-content']")?.id ?? last.closest(".conversation-container")?.id ?? "";
+    }
+    getLastUserText() {
+      const turns = this.userTurns();
+      const last = turns[turns.length - 1];
+      return last ? this.renderUser(last, "text") : "";
+    }
     async send(prompt) {
       const input = this.findComposer();
       if (!input) return { ok: false, code: "input_not_found", message: "Gemini composer not found (is the page signed in and fully loaded?)" };
@@ -1164,7 +1187,7 @@ ${content.trim().replace(/\n{2,}/g, "\n")}
         return { ok: true, data };
       }
       case "send": {
-        const baseline = adapter.getTurnCounts();
+        const baseline = snapshot(adapter);
         const outcome = await adapter.send(cmd.prompt);
         if (!outcome.ok) return { ok: false, error: { code: outcome.code, message: outcome.message } };
         const data = { baseline, via: outcome.via };
@@ -1174,10 +1197,11 @@ ${content.trim().replace(/\n{2,}/g, "\n")}
         scrollToBottom(adapter.scrollSelectors);
         const text = adapter.getLastResponseText("text");
         const data = {
-          turnCounts: adapter.getTurnCounts(),
+          ...snapshot(adapter),
           generating: adapter.isGenerating(),
           textLength: text.length,
           textHash: hashString(text),
+          composerText: normalise(adapter.findComposer()?.textContent ?? ""),
           visibility: document.visibilityState === "visible" ? "visible" : "hidden"
         };
         return { ok: true, data };
@@ -1191,6 +1215,16 @@ ${content.trim().replace(/\n{2,}/g, "\n")}
         return { ok: true, data };
       }
     }
+  }
+  function snapshot(a) {
+    return {
+      ...a.getTurnCounts(),
+      lastAssistantKey: a.getLastAssistantKey(),
+      lastUserText: normalise(a.getLastUserText())
+    };
+  }
+  function normalise(s) {
+    return s.replace(/\s+/g, " ").trim().slice(0, 300);
   }
   function pickAdapter(hostname) {
     switch (providerForHost(hostname)) {

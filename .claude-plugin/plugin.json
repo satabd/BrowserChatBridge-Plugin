@@ -1,6 +1,6 @@
 {
   "name": "bcb",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Talk to your signed-in ChatGPT and Gemini browser tabs from Claude Code as MCP tools (chatgpt_ask, gemini_ask, list_tabs, scrape_conversation). No API keys; drives the real web UI through a tiny local extension.",
   "author": { "name": "satabd" },
   "homepage": "https://github.com/satabd/BrowserChatBridge-Plugin",

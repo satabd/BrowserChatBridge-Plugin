@@ -11,6 +11,10 @@ export interface ProviderAdapter {
 
   findComposer(): HTMLElement | null;
   getTurnCounts(): TurnCounts;
+  /** Stable id of the newest assistant message, or "" if the page has no usable id. */
+  getLastAssistantKey(): string;
+  /** Plain text of the newest user message, or "". */
+  getLastUserText(): string;
   /**
    * Insert the prompt and trigger submit. Must not wait on page timers beyond
    * a short MutationObserver-backed wait for the send control to appear; the

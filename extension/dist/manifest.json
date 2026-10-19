@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BrowserChatBridge",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lets the BrowserChatBridge Claude Code plugin drive your signed-in ChatGPT and Gemini tabs. Talks only to 127.0.0.1.",
   "permissions": ["scripting", "storage", "tabs", "alarms"],
   "host_permissions": [

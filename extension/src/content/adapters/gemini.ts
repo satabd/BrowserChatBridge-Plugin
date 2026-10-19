@@ -63,6 +63,21 @@ export class GeminiAdapter implements ProviderAdapter {
     return { user: this.userTurns().length, assistant: this.assistantTurns().length };
   }
 
+  getLastAssistantKey(): string {
+    const turns = this.assistantTurns();
+    const last = turns[turns.length - 1];
+    if (!last) return "";
+    return last.querySelector("message-content[id], [id^='model-response-message-content']")?.id
+      ?? last.closest(".conversation-container")?.id
+      ?? "";
+  }
+
+  getLastUserText(): string {
+    const turns = this.userTurns();
+    const last = turns[turns.length - 1];
+    return last ? this.renderUser(last, "text") : "";
+  }
+
   async send(prompt: string): Promise<SendOutcome> {
     const input = this.findComposer();
     if (!input) return { ok: false, code: "input_not_found", message: "Gemini composer not found (is the page signed in and fully loaded?)" };

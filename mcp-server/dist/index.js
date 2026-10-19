@@ -40609,7 +40609,7 @@ function sleep(ms) {
 }
 
 // mcp-server/src/index.ts
-var VERSION = "0.2.0";
+var VERSION = "0.2.1";
 var EXTENSION_WAIT_MS = Number(process.env.BCB_EXTENSION_WAIT_MS ?? 25e3);
 var bridge = new Bridge(VERSION, Number(process.env.BCB_PORT ?? 17361));
 var lastUsedTab = /* @__PURE__ */ new Map();

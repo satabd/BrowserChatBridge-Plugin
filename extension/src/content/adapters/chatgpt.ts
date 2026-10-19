@@ -69,6 +69,25 @@ export class ChatGPTAdapter implements ProviderAdapter {
     return { user: this.userTurns().length, assistant: this.assistantTurns().length };
   }
 
+  getLastAssistantKey(): string {
+    const turns = this.assistantTurns();
+    const last = turns[turns.length - 1];
+    if (!last) return "";
+    const keyed = last.matches("[data-chatgpt-selection-message-id],[data-message-id]")
+      ? last
+      : last.querySelector<HTMLElement>("[data-chatgpt-selection-message-id],[data-message-id]");
+    return keyed?.getAttribute("data-chatgpt-selection-message-id")
+      ?? keyed?.getAttribute("data-message-id")
+      ?? last.closest("[data-turn-key]")?.getAttribute("data-turn-key")
+      ?? "";
+  }
+
+  getLastUserText(): string {
+    const turns = this.userTurns();
+    const last = turns[turns.length - 1];
+    return last ? this.renderUser(last, "text") : "";
+  }
+
   async send(prompt: string): Promise<SendOutcome> {
     const input = this.findComposer();
     if (!input) return { ok: false, code: "input_not_found", message: "ChatGPT composer not found (is the page signed in and fully loaded?)" };

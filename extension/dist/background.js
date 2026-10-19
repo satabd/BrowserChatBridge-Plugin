@@ -150,8 +150,8 @@
     const p = await provider(data.tabId);
     if (data.activate) await activateTab(data.tabId, p);
     const sent = await callContent(data.tabId, { action: "send", prompt: data.prompt });
-    const minUser = sent.baseline.user + 1;
-    const minAssistant = sent.baseline.assistant + 1;
+    const base = sent.baseline;
+    const promptNorm = data.prompt.replace(/\s+/g, " ").trim().slice(0, 300);
     await sleep(2e3);
     let prevHash = -1;
     let stable = 0;
@@ -159,23 +159,27 @@
     let completed = false;
     let warnedHidden = false;
     let note;
+    let final = null;
     while (Date.now() < ceiling) {
       const obs = await callContentFast(data.tabId, { action: "observe" });
+      final = obs;
       ticks++;
       if (obs.textHash === prevHash) stable++;
       else {
         stable = 0;
         prevHash = obs.textHash;
       }
+      const userAccepted = obs.user > base.user || obs.lastUserText !== base.lastUserText && (obs.lastUserText === promptNorm || promptNorm.startsWith(obs.lastUserText.slice(0, 80))) || obs.composerText === "" && obs.lastUserText !== base.lastUserText;
+      const assistantNew = obs.assistant > base.assistant || obs.lastAssistantKey !== "" && obs.lastAssistantKey !== base.lastAssistantKey;
       const elapsed = Date.now() - startedAt;
-      if (obs.turnCounts.user < minUser && elapsed > 8e3) {
-        throw bcbError("send_failed", `Prompt was inserted (${sent.via}) but no new user turn appeared after 8 s. The page may be showing a login wall, a modal, or a rate-limit notice.`);
+      if (!userAccepted && elapsed > 3e4 && obs.composerText.startsWith(promptNorm.slice(0, 40))) {
+        throw bcbError("send_failed", `Prompt was inserted (${sent.via}) but the page did not accept it within 30 s: it is still sitting in the composer. The page may be showing a login wall, a modal, or a rate-limit notice.`);
       }
       if (obs.visibility === "hidden" && !warnedHidden && elapsed > 15e3) {
         warnedHidden = true;
         await activateTab(data.tabId, p, { focusWindow: true });
       }
-      const hasNewTurn = obs.turnCounts.user >= minUser && obs.turnCounts.assistant >= minAssistant;
+      const hasNewTurn = userAccepted && assistantNew;
       const isStable = stable >= 5;
       if (hasNewTurn && !obs.generating && (obs.textLength > 0 ? isStable : isStable && ticks > 20)) {
         completed = true;
@@ -188,11 +192,10 @@
       await sleep(500);
     }
     const read = await callContent(data.tabId, { action: "getLastResponse", format: data.format });
-    const final = await callContentFast(data.tabId, { action: "observe" }).catch(() => null);
     return {
       text: read.text,
       format: data.format,
-      turnCounts: final?.turnCounts ?? { user: minUser, assistant: minAssistant },
+      turnCounts: { user: final?.user ?? base.user + 1, assistant: final?.assistant ?? base.assistant + 1 },
       elapsedMs: Date.now() - startedAt,
       completed,
       note
@@ -232,10 +235,11 @@
         url: t.url,
         title: t.title ?? "",
         active: !!t.active,
-        focused: !!(focusedWindow && t.windowId === focusedWindow.id)
+        focused: !!(focusedWindow && t.windowId === focusedWindow.id),
+        lastAccessed: t.lastAccessed ?? 0
       });
     }
-    return out;
+    return out.sort((a, b) => b.lastAccessed - a.lastAccessed);
   }
   async function activateTab(tabId, p, opts = {}) {
     try {
