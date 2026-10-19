@@ -7,6 +7,9 @@
  *   node tests/mcp-client.mjs list_tabs
  *   node tests/mcp-client.mjs chatgpt_ask '{"prompt":"Reply with OK","new_conversation":false}'
  *   node tests/mcp-client.mjs --two   # spawns two servers to exercise leader/follower
+ *
+ * Uses port 17399 (BCB_PORT) so it never interferes with a real bridge on 17361.
+ * Pass BCB_PORT=17361 explicitly to drive a real, running extension instead.
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -17,7 +20,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const serverPath = resolve(root, "mcp-server/dist/index.js");
 
 async function spawnClient(name) {
-  const transport = new StdioClientTransport({ command: process.execPath, args: [serverPath], env: { ...process.env, BCB_LOG_LEVEL: process.env.BCB_LOG_LEVEL ?? "warn" }, stderr: "inherit" });
+  // Same test port as tests/fake-extension.mjs so we never touch a real bridge on 17361.
+  const env = { ...process.env, BCB_LOG_LEVEL: process.env.BCB_LOG_LEVEL ?? "warn", BCB_PORT: process.env.BCB_PORT ?? "17399" };
+  const transport = new StdioClientTransport({ command: process.execPath, args: [serverPath], env, stderr: "inherit" });
   const client = new Client({ name, version: "0.0.0" });
   await client.connect(transport);
   return client;

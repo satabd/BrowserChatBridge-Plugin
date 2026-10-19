@@ -6,7 +6,10 @@
  */
 import WebSocket from "ws";
 
-const url = process.argv[2] ?? "ws://127.0.0.1:17361/extension";
+// Test port, NOT the production 17361: connecting a fake extension to a real
+// running bridge would displace the user's real extension socket.
+export const TEST_PORT = Number(process.env.BCB_PORT ?? 17399);
+const url = process.argv[2] ?? `ws://127.0.0.1:${TEST_PORT}/extension`;
 const tabs = [
   { tabId: 101, provider: "chatgpt", url: "https://chatgpt.com/c/fake", title: "Fake ChatGPT", active: true, focused: true, lastAccessed: 2 },
   { tabId: 202, provider: "gemini", url: "https://gemini.google.com/app/fake", title: "Fake Gemini", active: false, focused: false, lastAccessed: 1 },
